@@ -1,7 +1,9 @@
 {
   "version": 2,
-  "builds": [{ "src": "next.config.mjs", "use": "@vercel/next" }],
-  "github": { "enabled": true }
+  "builds": [
+    { "src": "next.config.js", "use": "@vercel/next" }
+  ],
+  "routes": [
+    { "src": "/(.*)", "dest": "/$1" }
+  ]
 }
-
-
