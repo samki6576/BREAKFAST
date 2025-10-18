@@ -1,0 +1,91 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Mobile safe area and touch adjustments */
+html, body {
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  background-color: #FFFBEB;
+}
+
+main {
+  padding-top: env(safe-area-inset-top);
+  padding-right: env(safe-area-inset-right);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+}
+
+@layer base {
+  :root {
+    --background: 43 100% 95%;
+    --foreground: 30 40% 20%;
+
+    --card: 43 100% 98%;
+    --card-foreground: 30 40% 20%;
+
+    --popover: 43 100% 98%;
+    --popover-foreground: 30 40% 20%;
+
+    --primary: 38 92% 50%;
+    --primary-foreground: 30 40% 20%;
+
+    --secondary: 30 100% 97%;
+    --secondary-foreground: 30 40% 20%;
+
+    --muted: 30 20% 90%;
+    --muted-foreground: 30 10% 40%;
+
+    --accent: 38 92% 90%;
+    --accent-foreground: 30 40% 20%;
+
+    --destructive: 0 85% 60%;
+    --destructive-foreground: 30 100% 98%;
+
+    --border: 38 50% 85%;
+    --input: 38 50% 85%;
+    --ring: 38 92% 50%;
+
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: 30 30% 10%;
+    --foreground: 38 50% 90%;
+
+    --card: 30 30% 15%;
+    --card-foreground: 38 50% 90%;
+
+    --popover: 30 30% 15%;
+    --popover-foreground: 38 50% 90%;
+
+    --primary: 38 92% 50%;
+    --primary-foreground: 30 40% 10%;
+
+    --secondary: 30 30% 20%;
+    --secondary-foreground: 38 50% 90%;
+
+    --muted: 30 30% 20%;
+    --muted-foreground: 30 20% 60%;
+
+    --accent: 30 30% 20%;
+    --accent-foreground: 38 50% 90%;
+
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 38 50% 90%;
+
+    --border: 30 30% 25%;
+    --input: 30 30% 25%;
+    --ring: 38 92% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
