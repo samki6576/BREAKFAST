@@ -120,8 +120,8 @@ export default function MainMenu({ onNavigate }: { onNavigate: (screen: Screen) 
         <p className="text-amber-700 mt-4 text-xl">A buttery match-3 adventure</p>
       </motion.div>
 
-      {/* Menu buttons */}
-      <div className="flex flex-col gap-4 w-64 z-10">
+  {/* Menu buttons */}
+  <div className="flex flex-col gap-4 w-64 sm:w-80 md:w-64 z-10 mx-4 sm:mx-auto">
         <motion.button
           variants={buttonVariants}
           whileHover="hover"
@@ -130,7 +130,7 @@ export default function MainMenu({ onNavigate }: { onNavigate: (screen: Screen) 
           animate={{ x: 0, opacity: 1 }}
           transition={{ delay: 0.1 }}
           onClick={() => (user ? onNavigate("game") : setShowLogin(true))}
-          className="bg-gradient-to-b from-amber-400 to-amber-500 px-6 py-4 rounded-xl shadow-lg text-amber-900 font-bold text-xl flex items-center justify-center gap-3"
+          className="bg-gradient-to-b from-amber-400 to-amber-500 px-4 sm:px-6 py-3 sm:py-4 rounded-xl shadow-lg text-amber-900 font-bold text-lg sm:text-xl flex items-center justify-center gap-3 w-full"
         >
           <Play className="w-6 h-6" /> Play
         </motion.button>
@@ -145,7 +145,7 @@ export default function MainMenu({ onNavigate }: { onNavigate: (screen: Screen) 
           animate={{ x: 0, opacity: 1 }}
           transition={{ delay: 0.3 }}
           onClick={() => onNavigate("leaderboard")}
-          className="bg-gradient-to-b from-amber-300 to-amber-400 px-6 py-4 rounded-xl shadow-lg text-amber-900 font-bold text-xl flex items-center justify-center gap-3"
+          className="bg-gradient-to-b from-amber-300 to-amber-400 px-4 sm:px-6 py-3 sm:py-4 rounded-xl shadow-lg text-amber-900 font-bold text-lg sm:text-xl flex items-center justify-center gap-3 w-full"
         >
           <Trophy className="w-6 h-6" /> Leaderboard
         </motion.button>
@@ -158,7 +158,7 @@ export default function MainMenu({ onNavigate }: { onNavigate: (screen: Screen) 
           animate={{ x: 0, opacity: 1 }}
           transition={{ delay: 0.4 }}
           onClick={() => onNavigate("shop")}
-          className="bg-gradient-to-b from-amber-300 to-amber-400 px-6 py-4 rounded-xl shadow-lg text-amber-900 font-bold text-xl flex items-center justify-center gap-3"
+          className="bg-gradient-to-b from-amber-300 to-amber-400 px-4 sm:px-6 py-3 sm:py-4 rounded-xl shadow-lg text-amber-900 font-bold text-lg sm:text-xl flex items-center justify-center gap-3 w-full"
         >
           <ShoppingCart className="w-6 h-6" /> Shop
         </motion.button>
@@ -172,7 +172,7 @@ export default function MainMenu({ onNavigate }: { onNavigate: (screen: Screen) 
           animate={{ x: 0, opacity: 1 }}
           transition={{ delay: 0.5 }}
           onClick={() => setShowSettings(true)}
-          className="bg-gradient-to-b from-amber-200 to-amber-300 px-6 py-4 rounded-xl shadow-lg text-amber-900 font-bold text-xl flex items-center justify-center gap-3"
+          className="bg-gradient-to-b from-amber-200 to-amber-300 px-4 sm:px-6 py-3 sm:py-4 rounded-xl shadow-lg text-amber-900 font-bold text-lg sm:text-xl flex items-center justify-center gap-3 w-full"
         >
           <Settings className="w-6 h-6" /> Settings
         </motion.button>
@@ -186,7 +186,7 @@ export default function MainMenu({ onNavigate }: { onNavigate: (screen: Screen) 
             animate={{ x: 0, opacity: 1 }}
             transition={{ delay: 0.6 }}
             onClick={() => onNavigate("profile")}
-            className="bg-gradient-to-b from-amber-200 to-amber-300 px-6 py-4 rounded-xl shadow-lg text-amber-900 font-bold text-xl flex items-center justify-center gap-3"
+            className="bg-gradient-to-b from-amber-200 to-amber-300 px-4 sm:px-6 py-3 sm:py-4 rounded-xl shadow-lg text-amber-900 font-bold text-lg sm:text-xl flex items-center justify-center gap-3 w-full"
           >
             <User className="w-6 h-6" /> Profile
           </motion.button>
@@ -199,7 +199,7 @@ export default function MainMenu({ onNavigate }: { onNavigate: (screen: Screen) 
             animate={{ x: 0, opacity: 1 }}
             transition={{ delay: 0.6 }}
             onClick={() => setShowLogin(true)}
-            className="bg-gradient-to-b from-green-400 to-green-500 px-6 py-4 rounded-xl shadow-lg text-green-900 font-bold text-xl flex items-center justify-center gap-3"
+            className="bg-gradient-to-b from-green-400 to-green-500 px-4 sm:px-6 py-3 sm:py-4 rounded-xl shadow-lg text-green-900 font-bold text-lg sm:text-xl flex items-center justify-center gap-3 w-full"
           >
             <User className="w-6 h-6" /> Sign In
           </motion.button>
