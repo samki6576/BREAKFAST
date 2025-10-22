@@ -40,6 +40,7 @@ interface GameContextType {
   initializeLevel: (level: Level) => void
   makeMove: (fromRow: number, fromCol: number, toRow: number, toCol: number) => void
   usePowerUp: (powerUp: keyof GameState["powerUps"], row?: number, col?: number) => void
+  addPowerUps: (updates: Partial<GameState["powerUps"]>) => void
   resetGame: () => void
   pauseGame: () => void
   resumeGame: () => void
@@ -350,6 +351,18 @@ export function GameProvider({ children }: { children: ReactNode }) {
     }))
   }
 
+  const addPowerUps = (updates: Partial<GameState["powerUps"]>) => {
+    setGameState((prev) => {
+      const next = { ...prev.powerUps }
+      for (const k in updates) {
+        const key = k as keyof GameState["powerUps"]
+        const add = updates[key] ?? 0
+        next[key] = (next[key] ?? 0) + add
+      }
+      return { ...prev, powerUps: next }
+    })
+  }
+
   const resetGame = () => {
     initializeLevel(gameState.currentLevel)
   }
@@ -369,6 +382,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         initializeLevel,
         makeMove,
         usePowerUp,
+        addPowerUps,
         resetGame,
         pauseGame,
         resumeGame,

@@ -3,11 +3,13 @@
 import { motion } from "framer-motion"
 import { ArrowLeft, Coins, Heart, Hammer, Shuffle, Plus, Bomb, ShoppingCart } from "lucide-react"
 import { useUser } from "@/contexts/user-context"
+import { useGame } from "@/contexts/game-context"
 import type { Screen } from "@/app/page"
 import { track } from "@/lib/analytics"
 
 export default function ShopScreen({ onNavigate }: { onNavigate: (screen: Screen) => void }) {
   const { user, spendCoins, updateUser } = useUser()
+  const { addPowerUps } = useGame()
 
   const shopItems = [
     {
@@ -97,6 +99,7 @@ export default function ShopScreen({ onNavigate }: { onNavigate: (screen: Screen
         break
       case "powerup":
         // This would update game context power-ups in a real implementation
+        addPowerUps({ [item.powerup as string]: item.amount } as any)
         alert(`Purchased ${item.amount} ${item.name}!`)
         track({ type: "purchase", itemId: item.id, amount: item.price })
         break

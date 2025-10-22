@@ -46,7 +46,7 @@ const GamePiece = ({
   }
 
   if (piece.type === "empty") {
-    return <div className="w-12 h-12 md:w-14 md:h-14" />
+    return <div className="w-12 h-12 md:w-14 md:h-14 aspect-square" />
   }
 
   return (
@@ -54,7 +54,7 @@ const GamePiece = ({
       whileHover={{ scale: 1.05 }}
       animate={isSelected ? { y: [0, -5, 0], transition: { repeat: Number.POSITIVE_INFINITY, duration: 0.5 } } : {}}
       onClick={onClick}
-      className={`${pieceColors[piece.type]} w-12 h-12 md:w-14 md:h-14 rounded-lg flex items-center justify-center text-xl md:text-2xl shadow-md cursor-pointer ${
+      className={`${pieceColors[piece.type]} w-12 h-12 md:w-14 md:h-14 aspect-square rounded-lg flex items-center justify-center text-xl md:text-2xl shadow-md cursor-pointer ${
         isSelected ? "ring-4 ring-amber-500" : ""
       } ${piece.special !== "none" ? "ring-2 ring-yellow-400" : ""}`}
     >
@@ -197,7 +197,7 @@ export default function GameBoard() {
 
   return (
     <div className="bg-gradient-to-b from-amber-100 to-amber-200 p-4 rounded-2xl shadow-xl border-4 border-amber-300">
-      <div className="grid grid-cols-8 gap-1">
+      <div className="grid grid-cols-8 md:grid-cols-8 gap-1 auto-rows-fr justify-center">
         {gameState.board.map((row, rowIndex) => (
           <>
             {row.map((piece, colIndex) => (
