@@ -104,8 +104,22 @@ export default function ShopScreen({ onNavigate }: { onNavigate: (screen: Screen
   }
 
   if (!user) {
-    onNavigate("menu")
-    return null
+    return (
+      <div className="max-w-4xl mx-auto text-center py-20">
+        <div className="bg-amber-50 p-8 rounded-2xl shadow-md border-2 border-amber-200">
+          <h2 className="text-2xl font-bold text-amber-800 mb-4">Please sign in to access the Shop</h2>
+          <p className="text-amber-700 mb-6">Sign in to save purchases and earn rewards.</p>
+          <div className="flex items-center justify-center gap-4">
+            <button
+              onClick={() => onNavigate("menu")}
+              className="px-4 py-2 bg-gradient-to-b from-amber-400 to-amber-500 text-amber-900 font-bold rounded-lg"
+            >
+              Go to Sign In
+            </button>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
