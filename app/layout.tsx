@@ -50,7 +50,11 @@ export default function RootLayout({
           </>
         )}
       </head>
-      <body>{children}</body>
+      <body className="bg-amber-50">
+        <div className="min-h-screen px-safe sm:px-4 md:px-8">
+          {children}
+        </div>
+      </body>
     </html>
   )
 }

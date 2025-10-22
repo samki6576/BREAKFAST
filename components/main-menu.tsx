@@ -50,7 +50,7 @@ export default function MainMenu({ onNavigate }: { onNavigate: (screen: Screen) 
 
       {/* Decorative elements */}
       <motion.div
-        className="absolute text-8xl top-10 left-10 opacity-70"
+        className="hidden sm:block absolute text-8xl top-10 left-10 opacity-70"
         animate={{
           y: [0, -10, 0],
           rotate: [0, 5, 0],
@@ -65,7 +65,7 @@ export default function MainMenu({ onNavigate }: { onNavigate: (screen: Screen) 
       </motion.div>
 
       <motion.div
-        className="absolute text-8xl bottom-10 right-10 opacity-70"
+        className="hidden sm:block absolute text-8xl bottom-10 right-10 opacity-70"
         animate={{
           y: [0, 10, 0],
           rotate: [0, -5, 0],
@@ -80,7 +80,7 @@ export default function MainMenu({ onNavigate }: { onNavigate: (screen: Screen) 
       </motion.div>
 
       <motion.div
-        className="absolute text-8xl top-10 right-20 opacity-70"
+        className="hidden sm:block absolute text-8xl top-10 right-20 opacity-70"
         animate={{
           y: [0, 15, 0],
           rotate: [0, 10, 0],
@@ -95,7 +95,7 @@ export default function MainMenu({ onNavigate }: { onNavigate: (screen: Screen) 
       </motion.div>
 
       <motion.div
-        className="absolute text-8xl bottom-20 left-20 opacity-70"
+        className="hidden sm:block absolute text-8xl bottom-20 left-20 opacity-70"
         animate={{
           y: [0, -15, 0],
           rotate: [0, -10, 0],

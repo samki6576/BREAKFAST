@@ -18,12 +18,16 @@ const GamePiece = ({
   col,
   isSelected,
   onClick,
+  onPointerDown,
+  onPointerUp,
 }: {
   piece: Piece
   row: number
   col: number
   isSelected: boolean
   onClick: () => void
+  onPointerDown?: (e: React.PointerEvent) => void
+  onPointerUp?: (e: React.PointerEvent) => void
 }) => {
   const pieceColors: Record<PieceType, string> = {
     toast: "bg-gradient-to-b from-amber-200 to-amber-300",
@@ -54,6 +58,8 @@ const GamePiece = ({
       whileHover={{ scale: 1.05 }}
       animate={isSelected ? { y: [0, -5, 0], transition: { repeat: Number.POSITIVE_INFINITY, duration: 0.5 } } : {}}
       onClick={onClick}
+      onPointerDown={onPointerDown}
+      onPointerUp={onPointerUp}
       className={`${pieceColors[piece.type]} w-8 h-8 sm:w-10 md:w-12 aspect-square rounded-lg flex items-center justify-center text-sm sm:text-lg md:text-2xl shadow-md cursor-pointer ${
         isSelected ? "ring-4 ring-amber-500" : ""
       } ${piece.special !== "none" ? "ring-2 ring-yellow-400" : ""}`}
@@ -69,6 +75,7 @@ const GamePiece = ({
 
 export default function GameBoard() {
   const { gameState, makeMove } = useGame()
+  const pointerStartRef = useRef<{ x: number; y: number; row: number; col: number } | null>(null)
   const [selectedPiece, setSelectedPiece] = useState<{ row: number; col: number } | null>(null)
   const { soundEnabled, soundVolume } = useSettings()
   const clickAudioRef = useRef<HTMLAudioElement | null>(null)
@@ -195,6 +202,42 @@ export default function GameBoard() {
     }
   }, [gameState.gameStatus, selectedPiece, soundEnabled, soundVolume, makeMove])
 
+  // Pointer handlers for swipe-to-swap
+  const handlePointerDown = (e: React.PointerEvent, row: number, col: number) => {
+    pointerStartRef.current = { x: e.clientX, y: e.clientY, row, col }
+  }
+
+  const handlePointerUp = (e: React.PointerEvent) => {
+    const start = pointerStartRef.current
+    if (!start) return
+    const dx = e.clientX - start.x
+    const dy = e.clientY - start.y
+    const absX = Math.abs(dx)
+    const absY = Math.abs(dy)
+    const threshold = 20
+    if (absX < threshold && absY < threshold) {
+      pointerStartRef.current = null
+      return
+    }
+
+    let targetRow = start.row
+    let targetCol = start.col
+    if (absX > absY) {
+      // horizontal swipe
+      targetCol = dx > 0 ? start.col + 1 : start.col - 1
+    } else {
+      // vertical swipe
+      targetRow = dy > 0 ? start.row + 1 : start.row - 1
+    }
+
+    // Ensure target is inside board
+    if (targetRow >= 0 && targetRow < gameState.board.length && targetCol >= 0 && targetCol < gameState.board[0].length) {
+      makeMove(start.row, start.col, targetRow, targetCol)
+    }
+
+    pointerStartRef.current = null
+  }
+
   return (
     <div className="bg-gradient-to-b from-amber-100 to-amber-200 p-3 rounded-2xl shadow-xl border-4 border-amber-300 overflow-auto">
       <div style={{ maxWidth: "min(100vw,480px)" }} className="mx-auto">
@@ -209,6 +252,8 @@ export default function GameBoard() {
                   col={colIndex}
                   isSelected={selectedPiece?.row === rowIndex && selectedPiece?.col === colIndex}
                   onClick={() => handlePieceClick(rowIndex, colIndex)}
+                  onPointerDown={(e: React.PointerEvent) => handlePointerDown(e, rowIndex, colIndex)}
+                  onPointerUp={(e: React.PointerEvent) => handlePointerUp(e)}
                 />
               ))}
             </div>
