@@ -241,23 +241,30 @@ export default function GameBoard() {
   return (
     <div className="bg-gradient-to-b from-amber-100 to-amber-200 p-3 rounded-2xl shadow-xl border-4 border-amber-300 overflow-auto">
       <div style={{ maxWidth: "min(100vw,480px)" }} className="mx-auto">
-        <div className="grid grid-cols-8 gap-1 auto-rows-fr justify-center">
-          {gameState.board.map((row, rowIndex) => (
-            <div key={`row-${rowIndex}`} className="flex gap-1">
-              {row.map((piece, colIndex) => (
-                <GamePiece
-                  key={`${rowIndex}-${colIndex}-${piece.id}`}
-                  piece={piece}
-                  row={rowIndex}
-                  col={colIndex}
-                  isSelected={selectedPiece?.row === rowIndex && selectedPiece?.col === colIndex}
-                  onClick={() => handlePieceClick(rowIndex, colIndex)}
-                  onPointerDown={(e: React.PointerEvent) => handlePointerDown(e, rowIndex, colIndex)}
-                  onPointerUp={(e: React.PointerEvent) => handlePointerUp(e)}
-                />
-              ))}
-            </div>
-          ))}
+        <div
+          className="grid gap-1"
+          style={{
+            gridTemplateColumns: `repeat(${gameState.board[0]?.length ?? 8}, minmax(0, 1fr))`,
+            alignItems: "stretch",
+          }}
+        >
+          {gameState.board.flat().map((piece, idx) => {
+            const cols = gameState.board[0]?.length ?? 8
+            const rowIndex = Math.floor(idx / cols)
+            const colIndex = idx % cols
+            return (
+              <GamePiece
+                key={`${rowIndex}-${colIndex}-${piece.id}`}
+                piece={piece}
+                row={rowIndex}
+                col={colIndex}
+                isSelected={selectedPiece?.row === rowIndex && selectedPiece?.col === colIndex}
+                onClick={() => handlePieceClick(rowIndex, colIndex)}
+                onPointerDown={(e: React.PointerEvent) => handlePointerDown(e, rowIndex, colIndex)}
+                onPointerUp={(e: React.PointerEvent) => handlePointerUp(e)}
+              />
+            )
+          })}
         </div>
       </div>
     </div>
