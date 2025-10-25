@@ -8,7 +8,8 @@ import { SoundManager } from "../utils/SoundManager"
 
 const { width } = Dimensions.get("window")
 const BOARD_SIZE = width - 60
-const PIECE_SIZE = (BOARD_SIZE - 28) / 8 // 8x8 grid with gaps
+const BOARD_COLS = 7 // number of columns in the game board
+const PIECE_SIZE = (BOARD_SIZE - 28) / BOARD_COLS // BOARD_COLS grid with gaps
 
 interface GamePieceProps {
   piece: any
@@ -60,12 +61,12 @@ const GamePiece = ({ piece, row, col, isSelected, onPress }: GamePieceProps) => 
       activeOpacity={0.8}
     >
       <LinearGradient
-        colors={pieceColors[piece.type]}
+        colors={pieceColors[piece.type as keyof typeof pieceColors] as unknown as any}
         style={styles.pieceGradient}
         start={{ x: 0, y: 0 }}
         end={{ x: 0, y: 1 }}
       >
-        <Text style={styles.pieceIcon}>{pieceIcons[piece.type]}</Text>
+        <Text style={styles.pieceIcon}>{pieceIcons[piece.type as keyof typeof pieceIcons]}</Text>
         {piece.special !== "none" && (
           <View style={styles.specialIndicator}>
             <Text style={styles.specialIcon}>✨</Text>

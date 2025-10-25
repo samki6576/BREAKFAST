@@ -64,6 +64,8 @@ interface GameContextType {
 
 const GameContext = createContext<GameContextType | undefined>(undefined)
 
+const BOARD_SIZE = 7
+
 const LEVELS: Level[] = [
   {
     id: 1,
@@ -153,9 +155,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
   const initializeBoard = (): GamePiece[][] => {
     const board: GamePiece[][] = []
-    for (let row = 0; row < 8; row++) {
+    for (let row = 0; row < BOARD_SIZE; row++) {
       board[row] = []
-      for (let col = 0; col < 8; col++) {
+      for (let col = 0; col < BOARD_SIZE; col++) {
         board[row][col] = generateRandomPiece()
       }
     }
@@ -166,11 +168,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
     const matches: { row: number; col: number }[] = []
 
     // Check horizontal matches
-    for (let row = 0; row < 8; row++) {
+    for (let row = 0; row < BOARD_SIZE; row++) {
       let count = 1
       let currentType = board[row][0].type
 
-      for (let col = 1; col < 8; col++) {
+      for (let col = 1; col < BOARD_SIZE; col++) {
         if (board[row][col].type === currentType && currentType !== "empty") {
           count++
         } else {
@@ -185,18 +187,18 @@ export function GameProvider({ children }: { children: ReactNode }) {
       }
 
       if (count >= 3) {
-        for (let i = 8 - count; i < 8; i++) {
+        for (let i = BOARD_SIZE - count; i < BOARD_SIZE; i++) {
           matches.push({ row, col: i })
         }
       }
     }
 
     // Check vertical matches
-    for (let col = 0; col < 8; col++) {
+    for (let col = 0; col < BOARD_SIZE; col++) {
       let count = 1
       let currentType = board[0][col].type
 
-      for (let row = 1; row < 8; row++) {
+      for (let row = 1; row < BOARD_SIZE; row++) {
         if (board[row][col].type === currentType && currentType !== "empty") {
           count++
         } else {
@@ -211,7 +213,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       }
 
       if (count >= 3) {
-        for (let i = 8 - count; i < 8; i++) {
+        for (let i = BOARD_SIZE - count; i < BOARD_SIZE; i++) {
           matches.push({ row: i, col })
         }
       }
@@ -232,9 +234,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
   }
 
   const dropPieces = (board: GamePiece[][]) => {
-    for (let col = 0; col < 8; col++) {
-      let writeIndex = 7
-      for (let row = 7; row >= 0; row--) {
+    for (let col = 0; col < BOARD_SIZE; col++) {
+      let writeIndex = BOARD_SIZE - 1
+      for (let row = BOARD_SIZE - 1; row >= 0; row--) {
         if (board[row][col].type !== "empty") {
           if (writeIndex !== row) {
             board[writeIndex][col] = board[row][col]
@@ -336,8 +338,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
       case "shuffle":
         // Shuffle the board
         const pieces: GamePiece[] = []
-        for (let r = 0; r < 8; r++) {
-          for (let c = 0; c < 8; c++) {
+        for (let r = 0; r < BOARD_SIZE; r++) {
+          for (let c = 0; c < BOARD_SIZE; c++) {
             if (newBoard[r][c].type !== "empty") {
               pieces.push(newBoard[r][c])
             }
@@ -351,8 +353,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
         }
 
         let pieceIndex = 0
-        for (let r = 0; r < 8; r++) {
-          for (let c = 0; c < 8; c++) {
+        for (let r = 0; r < BOARD_SIZE; r++) {
+          for (let c = 0; c < BOARD_SIZE; c++) {
             if (newBoard[r][c].type !== "empty") {
               newBoard[r][c] = pieces[pieceIndex++]
             }
@@ -371,8 +373,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
       case "colorBomb":
         if (row !== undefined && col !== undefined) {
           const targetType = newBoard[row][col].type
-          for (let r = 0; r < 8; r++) {
-            for (let c = 0; c < 8; c++) {
+          for (let r = 0; r < BOARD_SIZE; r++) {
+            for (let c = 0; c < BOARD_SIZE; c++) {
               if (newBoard[r][c].type === targetType) {
                 newBoard[r][c] = { type: "empty", special: "none", id: "" }
                 scoreBonus += 50
@@ -385,7 +387,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       case "baconBomb":
         if (row !== undefined && col !== undefined) {
           // Clear entire row
-          for (let c = 0; c < 8; c++) {
+          for (let c = 0; c < BOARD_SIZE; c++) {
             if (newBoard[row][c].health && newBoard[row][c].health! > 1) {
               newBoard[row][c].health!--
             } else {
@@ -394,7 +396,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
             }
           }
           // Clear entire column
-          for (let r = 0; r < 8; r++) {
+          for (let r = 0; r < BOARD_SIZE; r++) {
             if (newBoard[r][col].health && newBoard[r][col].health! > 1) {
               newBoard[r][col].health!--
             } else {
@@ -412,8 +414,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
           const targetPieces: { row: number; col: number }[] = []
 
           // Find all pieces of target type
-          for (let r = 0; r < 8; r++) {
-            for (let c = 0; c < 8; c++) {
+          for (let r = 0; r < BOARD_SIZE; r++) {
+            for (let c = 0; c < BOARD_SIZE; c++) {
               if (newBoard[r][c].type === targetType) {
                 targetPieces.push({ row: r, col: c })
               }
