@@ -124,35 +124,39 @@ class SoundManagerClass {
 
   // Preload all sound effects
   private async preloadSoundEffects() {
-    const soundFiles: Record<SoundEffectType, any> = {
-      match3: require("../../assets/sounds/match3.mp3"),
-      match4: require("../../assets/sounds/match4.mp3"),
-      match5: require("../../assets/sounds/match5.mp3"),
-      powerup_hammer: require("../../assets/sounds/hammer.mp3"),
-      powerup_shuffle: require("../../assets/sounds/shuffle.mp3"),
-      powerup_colorbomb: require("../../assets/sounds/colorbomb.mp3"),
-      powerup_baconbomb: require("../../assets/sounds/baconbomb.mp3"),
-      powerup_maplesyrup: require("../../assets/sounds/maplesyrup.mp3"),
-      powerup_coffee: require("../../assets/sounds/coffee.mp3"),
-      level_complete: require("../../assets/sounds/victory.mp3"),
-      level_failed: require("../../assets/sounds/defeat.mp3"),
-      button_click: require("../../assets/sounds/click.mp3"),
-      obstacle_break: require("../../assets/sounds/break.mp3"),
-      toast_match: require("../../assets/sounds/toast.mp3"),
-      pancake_match: require("../../assets/sounds/pancake.mp3"),
-      honey_match: require("../../assets/sounds/honey.mp3"),
-      butter_match: require("../../assets/sounds/butter.mp3"),
-      waffle_match: require("../../assets/sounds/waffle.mp3"),
-      syrup_match: require("../../assets/sounds/syrup.mp3"),
+    // Use public URLs so Next.js server build doesn't try to resolve static requires.
+    // Place audio files under /public/sounds/ (e.g. public/sounds/match3.mp3).
+    const soundFiles: Record<SoundEffectType, { uri: string }> = {
+      match3: { uri: "/sounds/match3.mp3" },
+      match4: { uri: "/sounds/match4.mp3" },
+      match5: { uri: "/sounds/match5.mp3" },
+      powerup_hammer: { uri: "/sounds/hammer.mp3" },
+      powerup_shuffle: { uri: "/sounds/shuffle.mp3" },
+      powerup_colorbomb: { uri: "/sounds/colorbomb.mp3" },
+      powerup_baconbomb: { uri: "/sounds/baconbomb.mp3" },
+      powerup_maplesyrup: { uri: "/sounds/maplesyrup.mp3" },
+      powerup_coffee: { uri: "/sounds/coffee.mp3" },
+      level_complete: { uri: "/sounds/victory.mp3" },
+      level_failed: { uri: "/sounds/defeat.mp3" },
+      button_click: { uri: "/sounds/click.mp3" },
+      obstacle_break: { uri: "/sounds/break.mp3" },
+      toast_match: { uri: "/sounds/toast.mp3" },
+      pancake_match: { uri: "/sounds/pancake.mp3" },
+      honey_match: { uri: "/sounds/honey.mp3" },
+      butter_match: { uri: "/sounds/butter.mp3" },
+      waffle_match: { uri: "/sounds/waffle.mp3" },
+      syrup_match: { uri: "/sounds/syrup.mp3" },
     }
 
     // Load each sound effect
-    for (const [key, file] of Object.entries(soundFiles) as [SoundEffectType, any][]) {
+    for (const [key, file] of Object.entries(soundFiles) as [SoundEffectType, { uri: string }][]) {
       try {
-        const { sound } = await Audio.Sound.createAsync(file, { volume: this.soundVolume })
+        // Audio.Sound.createAsync accepts a source object with a uri for remote/local public files
+        const { sound } = await Audio.Sound.createAsync({ uri: file.uri }, { volume: this.soundVolume })
         this.soundEffects[key] = sound
       } catch (error) {
-        console.error(`Failed to load sound effect: ${key}`, error)
+        // Don't crash the build/runtime when a file is missing; log and continue.
+        console.warn(`Failed to load sound effect: ${key} (${file.uri})`, error)
       }
     }
   }
@@ -160,20 +164,27 @@ class SoundManagerClass {
   // Load a music track
   async loadMusic(track: MusicTrackType) {
     try {
-      const musicFiles: Record<MusicTrackType, any> = {
-        menu: require("../../assets/music/menu.mp3"),
-        gameplay: require("../../assets/music/gameplay.mp3"),
-        victory: require("../../assets/music/victory.mp3"),
-        shop: require("../../assets/music/shop.mp3"),
+      const musicFiles: Record<MusicTrackType, { uri: string }> = {
+        menu: { uri: "/music/menu.mp3" },
+        gameplay: { uri: "/music/gameplay.mp3" },
+        victory: { uri: "/music/victory.mp3" },
+        shop: { uri: "/music/shop.mp3" },
       }
 
       if (!this.musicTracks[track]) {
-        const { sound } = await Audio.Sound.createAsync(musicFiles[track], {
-          volume: this.musicVolume,
-          isLooping: true,
-          shouldPlay: false,
-        })
-        this.musicTracks[track] = sound
+        try {
+          const { sound } = await Audio.Sound.createAsync(
+            { uri: musicFiles[track].uri },
+            {
+              volume: this.musicVolume,
+              isLooping: true,
+              shouldPlay: false,
+            },
+          )
+          this.musicTracks[track] = sound
+        } catch (error) {
+          console.warn(`Failed to load music track: ${track} (${musicFiles[track].uri})`, error)
+        }
       }
     } catch (error) {
       console.error(`Failed to load music track: ${track}`, error)
