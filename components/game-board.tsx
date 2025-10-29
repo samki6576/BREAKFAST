@@ -17,6 +17,7 @@ const GamePiece = ({
   row,
   col,
   isSelected,
+  isMatched,
   onClick,
   onPointerDown,
   onPointerUp,
@@ -25,6 +26,7 @@ const GamePiece = ({
   row: number
   col: number
   isSelected: boolean
+  isMatched?: boolean
   onClick: () => void
   onPointerDown?: (e: React.PointerEvent) => void
   onPointerUp?: (e: React.PointerEvent) => void
@@ -53,10 +55,17 @@ const GamePiece = ({
     return <div className="w-8 h-8 sm:w-10 md:w-12 aspect-square" />
   }
 
+  // matched animation: scale up and fade out
+  const matchedAnimate = isMatched
+    ? { scale: [1, 1.4, 0.8], opacity: [1, 0.8, 0], rotate: [0, 6, 12] }
+    : {}
+
   return (
     <motion.div
+      layout
       whileHover={{ scale: 1.05 }}
-      animate={isSelected ? { y: [0, -5, 0], transition: { repeat: Number.POSITIVE_INFINITY, duration: 0.5 } } : {}}
+      animate={isSelected ? { y: [0, -5, 0], transition: { repeat: Number.POSITIVE_INFINITY, duration: 0.5 } } : matchedAnimate}
+      transition={{ duration: isMatched ? 0.36 : 0.2 }}
       onClick={onClick}
       onPointerDown={onPointerDown}
       onPointerUp={onPointerUp}
@@ -65,6 +74,22 @@ const GamePiece = ({
       } ${piece.special !== "none" ? "ring-2 ring-yellow-400" : ""}`}
     >
       {pieceIcons[piece.type]}
+      {isMatched && (
+        // small sparkle emojis that burst from the matched piece
+        <div className="absolute inset-0 pointer-events-none">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <motion.span
+              key={i}
+              initial={{ opacity: 1, y: 0, x: 0, scale: 0.6 }}
+              animate={{ opacity: 0, y: -(30 + Math.random() * 40), x: (Math.random() - 0.5) * 40, scale: 1 }}
+              transition={{ duration: 0.6 + Math.random() * 0.4, ease: "easeOut" }}
+              className="absolute left-1/2 top-1/2 text-sm transform -translate-x-1/2 -translate-y-1/2"
+            >
+              {['✨','💫','⭐','🌟','🎇','🎆'][i % 6]}
+            </motion.span>
+          ))}
+        </div>
+      )}
       {piece.special === "striped-h" && <div className="absolute inset-0 bg-yellow-400 opacity-30 rounded-lg" />}
       {piece.special === "striped-v" && <div className="absolute inset-0 bg-yellow-400 opacity-30 rounded-lg" />}
       {piece.special === "wrapped" && <div className="absolute inset-0 border-4 border-yellow-400 rounded-lg" />}
@@ -252,13 +277,15 @@ export default function GameBoard() {
             const cols = gameState.board[0]?.length ?? 8
             const rowIndex = Math.floor(idx / cols)
             const colIndex = idx % cols
+            const isMatched = !!gameState.lastMatches?.some((m) => m.row === rowIndex && m.col === colIndex)
             return (
               <GamePiece
-                key={`${rowIndex}-${colIndex}-${piece.id}`}
+                key={piece.id}
                 piece={piece}
                 row={rowIndex}
                 col={colIndex}
                 isSelected={selectedPiece?.row === rowIndex && selectedPiece?.col === colIndex}
+                isMatched={isMatched}
                 onClick={() => handlePieceClick(rowIndex, colIndex)}
                 onPointerDown={(e: React.PointerEvent) => handlePointerDown(e, rowIndex, colIndex)}
                 onPointerUp={(e: React.PointerEvent) => handlePointerUp(e)}

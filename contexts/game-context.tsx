@@ -33,12 +33,14 @@ export interface GameState {
     extraMoves: number
     colorBomb: number
   }
+  // transient list of recently matched cells so UI can animate them
+  lastMatches?: { row: number; col: number }[]
 }
 
 interface GameContextType {
   gameState: GameState
   initializeLevel: (level: Level) => void
-  makeMove: (fromRow: number, fromCol: number, toRow: number, toCol: number) => void
+  makeMove: (fromRow: number, fromCol: number, toRow: number, toCol: number) => Promise<void>
   usePowerUp: (powerUp: keyof GameState["powerUps"], row?: number, col?: number) => void
   addPowerUps: (updates: Partial<GameState["powerUps"]>) => void
   resetGame: () => void
@@ -232,7 +234,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
     }))
   }
 
-  const makeMove = (fromRow: number, fromCol: number, toRow: number, toCol: number) => {
+  const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms))
+
+  const makeMove = async (fromRow: number, fromCol: number, toRow: number, toCol: number) => {
     if (gameState.gameStatus !== "playing" || gameState.moves <= 0) return
 
     const newBoard = gameState.board.map((row) => [...row])
@@ -242,8 +246,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
     newBoard[fromRow][fromCol] = newBoard[toRow][toCol]
     newBoard[toRow][toCol] = temp
 
+
     // Check for matches
-    const matches = findMatches(newBoard)
+    let matches = findMatches(newBoard)
 
     if (matches.length === 0) {
       // No matches, revert swap
@@ -253,13 +258,25 @@ export function GameProvider({ children }: { children: ReactNode }) {
     let totalScore = gameState.score
     const currentBoard = newBoard
 
-    // Process cascading matches
+    // First, expose the matches to UI so it can animate
+    setGameState((prev) => ({ ...prev, lastMatches: matches }))
+    // give UI some time to animate (fade/scale) before removing
+    await sleep(360)
+
+    // Process cascading matches (animate each cascade)
     while (true) {
       const currentMatches = findMatches(currentBoard)
       if (currentMatches.length === 0) break
 
+      // expose cascade matches for UI
+      setGameState((prev) => ({ ...prev, lastMatches: currentMatches }))
+      await sleep(300)
+
       totalScore += removeMatches(currentBoard, currentMatches)
       dropPieces(currentBoard)
+
+      // allow drop animation to settle visually
+      await sleep(220)
     }
 
     const newMoves = gameState.moves - 1
@@ -279,6 +296,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       moves: newMoves,
       selectedPiece: null,
       gameStatus: newStatus,
+      lastMatches: [],
     }))
   }
 
