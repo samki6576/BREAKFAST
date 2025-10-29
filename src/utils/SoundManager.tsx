@@ -122,10 +122,8 @@ class SoundManagerClass {
     }
   }
 
-  // Preload all sound effects
+  // Preload all sound effects (use public /sounds/* URLs so build doesn't require asset files)
   private async preloadSoundEffects() {
-    // Use public URLs so Next.js server build doesn't try to resolve static requires.
-    // Place audio files under /public/sounds/ (e.g. public/sounds/match3.mp3).
     const soundFiles: Record<SoundEffectType, { uri: string }> = {
       match3: { uri: "/sounds/match3.mp3" },
       match4: { uri: "/sounds/match4.mp3" },
@@ -148,20 +146,19 @@ class SoundManagerClass {
       syrup_match: { uri: "/sounds/syrup.mp3" },
     }
 
-    // Load each sound effect
+    // Load each sound effect; handle missing files gracefully
     for (const [key, file] of Object.entries(soundFiles) as [SoundEffectType, { uri: string }][]) {
       try {
-        // Audio.Sound.createAsync accepts a source object with a uri for remote/local public files
         const { sound } = await Audio.Sound.createAsync({ uri: file.uri }, { volume: this.soundVolume })
         this.soundEffects[key] = sound
       } catch (error) {
-        // Don't crash the build/runtime when a file is missing; log and continue.
+        // Don't throw build errors — just warn at runtime when files are absent
         console.warn(`Failed to load sound effect: ${key} (${file.uri})`, error)
       }
     }
   }
 
-  // Load a music track
+  // Load a music track from public /music/* URIs
   async loadMusic(track: MusicTrackType) {
     try {
       const musicFiles: Record<MusicTrackType, { uri: string }> = {
@@ -173,17 +170,14 @@ class SoundManagerClass {
 
       if (!this.musicTracks[track]) {
         try {
-          const { sound } = await Audio.Sound.createAsync(
-            { uri: musicFiles[track].uri },
-            {
-              volume: this.musicVolume,
-              isLooping: true,
-              shouldPlay: false,
-            },
-          )
+          const { sound } = await Audio.Sound.createAsync({ uri: musicFiles[track].uri }, {
+            volume: this.musicVolume,
+            isLooping: true,
+            shouldPlay: false,
+          })
           this.musicTracks[track] = sound
-        } catch (error) {
-          console.warn(`Failed to load music track: ${track} (${musicFiles[track].uri})`, error)
+        } catch (err) {
+          console.warn(`Failed to load music track: ${track} (${musicFiles[track].uri})`, err)
         }
       }
     } catch (error) {
@@ -193,33 +187,7 @@ class SoundManagerClass {
 
   // Play a sound effect
   async playSound(sound: SoundEffectType) {
-    if (!this.soundEnabled || !this.soundEffects[sound]) {
-      // If sound is disabled, attempt vibration fallback when user has vibration enabled in settings
-      try {
-        // Check web/localStorage setting first
-        if (typeof window !== "undefined" && typeof window.localStorage !== "undefined") {
-          const vib = window.localStorage.getItem("vibration")
-          if (vib === "true" && typeof navigator !== "undefined" && "vibrate" in navigator) {
-            navigator.vibrate?.(50)
-            return
-          }
-        }
-
-        // Try react-native Vibration as a fallback (may throw on web)
-        try {
-          // eslint-disable-next-line @typescript-eslint/no-var-requires
-          const { Vibration } = require("react-native")
-          if (Vibration && typeof Vibration.vibrate === "function") {
-            // Try AsyncStorage for saved vibration setting
-            try {
-              const saved = await AsyncStorage.getItem("vibration")
-              if (saved === "true") Vibration.vibrate(50)
-            } catch {}
-          }
-        } catch {}
-      } catch {}
-      return
-    }
+    if (!this.soundEnabled || !this.soundEffects[sound]) return
 
     try {
       // Stop and rewind the sound first
