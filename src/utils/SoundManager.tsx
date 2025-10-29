@@ -1,8 +1,26 @@
 "use client"
 
-import { Audio } from "expo-av"
 import { useEffect, useState } from "react"
-import AsyncStorage from "@react-native-async-storage/async-storage"
+
+// Dynamically import Expo / React Native audio and storage modules at runtime so
+// the Next.js server build doesn't try to resolve react-native / expo modules.
+async function getAudioModule() {
+  try {
+    const mod = await import("expo-av")
+    return mod.Audio
+  } catch (e) {
+    return null
+  }
+}
+
+async function getAsyncStorageModule() {
+  try {
+    const mod = await import("@react-native-async-storage/async-storage")
+    return mod.default || mod
+  } catch (e) {
+    return null
+  }
+}
 
 // Sound effect types
 export type SoundEffectType =
@@ -30,7 +48,8 @@ export type SoundEffectType =
 export type MusicTrackType = "menu" | "gameplay" | "victory" | "shop"
 
 class SoundManagerClass {
-  private soundEffects: Record<SoundEffectType, Audio.Sound | null> = {
+  // Use `any` for sound objects so we don't require Expo types at compile time.
+  private soundEffects: Record<SoundEffectType, any | null> = {
     match3: null,
     match4: null,
     match5: null,
@@ -52,7 +71,7 @@ class SoundManagerClass {
     syrup_match: null,
   }
 
-  private musicTracks: Record<MusicTrackType, Audio.Sound | null> = {
+  private musicTracks: Record<MusicTrackType, any | null> = {
     menu: null,
     gameplay: null,
     victory: null,
@@ -75,11 +94,19 @@ class SoundManagerClass {
       await this.loadSettings()
 
       // Configure audio mode
-      await Audio.setAudioModeAsync({
-        playsInSilentModeIOS: true,
-        staysActiveInBackground: true,
-        shouldDuckAndroid: true,
-      })
+      // Try to configure native audio mode if available. On web this will be a no-op.
+      try {
+        const AudioModule = await getAudioModule()
+        if (AudioModule && AudioModule.setAudioModeAsync) {
+          await AudioModule.setAudioModeAsync({
+            playsInSilentModeIOS: true,
+            staysActiveInBackground: true,
+            shouldDuckAndroid: true,
+          })
+        }
+      } catch (e) {
+        // ignore - web or missing expo-av
+      }
 
       // Preload sound effects
       await this.preloadSoundEffects()
@@ -94,7 +121,15 @@ class SoundManagerClass {
   // Load user audio settings
   private async loadSettings() {
     try {
-      const settings = await AsyncStorage.getItem("audio_settings")
+      const AsyncStorage = await getAsyncStorageModule()
+      let settings: string | null = null
+
+      if (AsyncStorage && AsyncStorage.getItem) {
+        settings = await AsyncStorage.getItem("audio_settings")
+      } else if (typeof window !== "undefined" && window.localStorage) {
+        settings = window.localStorage.getItem("audio_settings")
+      }
+
       if (settings) {
         const { soundEnabled, musicEnabled, soundVolume, musicVolume } = JSON.parse(settings)
         this.soundEnabled = soundEnabled
@@ -116,7 +151,12 @@ class SoundManagerClass {
         soundVolume: this.soundVolume,
         musicVolume: this.musicVolume,
       }
-      await AsyncStorage.setItem("audio_settings", JSON.stringify(settings))
+      const AsyncStorage = await getAsyncStorageModule()
+      if (AsyncStorage && AsyncStorage.setItem) {
+        await AsyncStorage.setItem("audio_settings", JSON.stringify(settings))
+      } else if (typeof window !== "undefined" && window.localStorage) {
+        window.localStorage.setItem("audio_settings", JSON.stringify(settings))
+      }
     } catch (error) {
       console.error("Failed to save audio settings:", error)
     }
@@ -147,10 +187,47 @@ class SoundManagerClass {
     }
 
     // Load each sound effect; handle missing files gracefully
+    const AudioModule = await getAudioModule()
+
     for (const [key, file] of Object.entries(soundFiles) as [SoundEffectType, { uri: string }][]) {
       try {
-        const { sound } = await Audio.Sound.createAsync({ uri: file.uri }, { volume: this.soundVolume })
-        this.soundEffects[key] = sound
+        if (AudioModule && AudioModule.Sound && AudioModule.Sound.createAsync) {
+          const { sound } = await AudioModule.Sound.createAsync({ uri: file.uri }, { volume: this.soundVolume })
+          this.soundEffects[key] = sound
+        } else if (typeof window !== "undefined") {
+          // Web fallback: create a simple HTMLAudio-backed wrapper with the async methods we expect.
+          const audioEl = new window.Audio(file.uri)
+          audioEl.preload = "auto"
+          audioEl.volume = this.soundVolume
+          const wrapper = {
+            _el: audioEl,
+            playAsync: async () => {
+              try {
+                audioEl.currentTime = 0
+                await audioEl.play()
+              } catch (e) {
+                // play() may throw if user hasn't interacted; ignore
+              }
+            },
+            stopAsync: async () => {
+              audioEl.pause()
+              audioEl.currentTime = 0
+            },
+            setPositionAsync: async (pos: number) => {
+              audioEl.currentTime = pos / 1000
+            },
+            setVolumeAsync: async (v: number) => {
+              audioEl.volume = v
+            },
+            unloadAsync: async () => {
+              audioEl.pause()
+              try {
+                audioEl.src = ""
+              } catch (e) {}
+            },
+          }
+          this.soundEffects[key] = wrapper
+        }
       } catch (error) {
         // Don't throw build errors — just warn at runtime when files are absent
         console.warn(`Failed to load sound effect: ${key} (${file.uri})`, error)
@@ -170,12 +247,41 @@ class SoundManagerClass {
 
       if (!this.musicTracks[track]) {
         try {
-          const { sound } = await Audio.Sound.createAsync({ uri: musicFiles[track].uri }, {
-            volume: this.musicVolume,
-            isLooping: true,
-            shouldPlay: false,
-          })
-          this.musicTracks[track] = sound
+          const AudioModule = await getAudioModule()
+          if (AudioModule && AudioModule.Sound && AudioModule.Sound.createAsync) {
+            const { sound } = await AudioModule.Sound.createAsync({ uri: musicFiles[track].uri }, {
+              volume: this.musicVolume,
+              isLooping: true,
+              shouldPlay: false,
+            })
+            this.musicTracks[track] = sound
+          } else if (typeof window !== "undefined") {
+            const audioEl = new window.Audio(musicFiles[track].uri)
+            audioEl.loop = true
+            audioEl.preload = "auto"
+            audioEl.volume = this.musicVolume
+            const wrapper = {
+              _el: audioEl,
+              playAsync: async () => {
+                try {
+                  await audioEl.play()
+                } catch (e) {}
+              },
+              stopAsync: async () => {
+                audioEl.pause()
+              },
+              setVolumeAsync: async (v: number) => {
+                audioEl.volume = v
+              },
+              unloadAsync: async () => {
+                audioEl.pause()
+                try {
+                  audioEl.src = ""
+                } catch (e) {}
+              },
+            }
+            this.musicTracks[track] = wrapper
+          }
         } catch (err) {
           console.warn(`Failed to load music track: ${track} (${musicFiles[track].uri})`, err)
         }
