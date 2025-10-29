@@ -1,6 +1,7 @@
 "use client"
 
 import { createContext, useCallback, useContext, useMemo, useState, useEffect, ReactNode } from "react"
+import { SoundManager } from "../src/utils/SoundManager"
 
 export type SettingsContextValue = {
   soundVolume: number
@@ -74,6 +75,22 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       localStorage.setItem("musicEnabled", String(musicEnabled))
     } catch {}
   }, [musicEnabled])
+
+  // Apply settings to native SoundManager when they change
+  useEffect(() => {
+    try {
+      // SoundManager expects volumes as 0-1
+      SoundManager.toggleSound(soundEnabled)
+      SoundManager.setSoundVolume(soundVolume / 100)
+    } catch (e) {}
+  }, [soundEnabled, soundVolume])
+
+  useEffect(() => {
+    try {
+      SoundManager.toggleMusic(musicEnabled)
+      SoundManager.setMusicVolume(musicVolume / 100)
+    } catch (e) {}
+  }, [musicEnabled, musicVolume])
 
   const setSoundVolume = useCallback((value: number) => {
     setSoundVolumeState(Math.max(0, Math.min(100, value)))

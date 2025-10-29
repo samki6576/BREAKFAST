@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, type ReactNode } from "react"
 import { Vibration } from "react-native"
+import { useSettings } from "@/contexts/settings-context"
 
 export type PieceType =
   | "toast"
@@ -110,6 +111,7 @@ const LEVELS: Level[] = [
 ]
 
 export function GameProvider({ children }: { children: ReactNode }) {
+  const { vibration } = useSettings()
   const [gameState, setGameState] = useState<GameState>({
     currentLevel: LEVELS[0],
     board: [],
@@ -284,8 +286,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
       return
     }
 
-    // Vibrate on successful match
-    Vibration.vibrate(100)
+  // Vibrate on successful match
+  if (vibration) Vibration.vibrate(100)
 
     let totalScore = gameState.score
     const currentBoard = newBoard
@@ -305,10 +307,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
     // Check win/lose conditions
     if (totalScore >= gameState.currentLevel.targetScore) {
       newStatus = "won"
-      Vibration.vibrate([100, 50, 100, 50, 200]) // Victory vibration pattern
+      if (vibration) Vibration.vibrate([100, 50, 100, 50, 200]) // Victory vibration pattern
     } else if (newMoves <= 0) {
       newStatus = "lost"
-      Vibration.vibrate(500) // Defeat vibration
+      if (vibration) Vibration.vibrate(500) // Defeat vibration
     }
 
     setGameState((prev) => ({
@@ -332,7 +334,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         if (row !== undefined && col !== undefined) {
           newBoard[row][col] = { type: "empty", special: "none", id: "" }
           scoreBonus = 100
-          Vibration.vibrate(150)
+          if (vibration) Vibration.vibrate(150)
         }
         break
       case "shuffle":
@@ -360,7 +362,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
             }
           }
         }
-        Vibration.vibrate(200)
+  if (vibration) Vibration.vibrate(200)
         break
       case "extraMoves":
         setGameState((prev) => ({
@@ -368,7 +370,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
           moves: prev.moves + 5,
           powerUps: { ...prev.powerUps, [powerUp]: prev.powerUps[powerUp] - 1 },
         }))
-        Vibration.vibrate(100)
+  if (vibration) Vibration.vibrate(100)
         return
       case "colorBomb":
         if (row !== undefined && col !== undefined) {
@@ -381,7 +383,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
               }
             }
           }
-          Vibration.vibrate([100, 50, 100, 50, 100])
+          if (vibration) Vibration.vibrate([100, 50, 100, 50, 100])
         }
         break
       case "baconBomb":
@@ -404,7 +406,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
               scoreBonus += 75
             }
           }
-          Vibration.vibrate([200, 100, 200])
+          if (vibration) Vibration.vibrate([200, 100, 200])
         }
         break
 
@@ -430,7 +432,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
             scoreBonus += 30
           })
 
-          Vibration.vibrate([100, 50, 100, 50, 100, 50, 200])
+          if (vibration) Vibration.vibrate([100, 50, 100, 50, 100, 50, 200])
         }
         break
 
@@ -441,7 +443,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
           moves: prev.moves + 3,
           powerUps: { ...prev.powerUps, [powerUp]: prev.powerUps[powerUp] - 1 },
         }))
-        Vibration.vibrate([50, 25, 50, 25, 50])
+  if (vibration) Vibration.vibrate([50, 25, 50, 25, 50])
         return
     }
 

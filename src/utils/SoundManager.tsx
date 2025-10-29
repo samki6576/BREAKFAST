@@ -182,7 +182,33 @@ class SoundManagerClass {
 
   // Play a sound effect
   async playSound(sound: SoundEffectType) {
-    if (!this.soundEnabled || !this.soundEffects[sound]) return
+    if (!this.soundEnabled || !this.soundEffects[sound]) {
+      // If sound is disabled, attempt vibration fallback when user has vibration enabled in settings
+      try {
+        // Check web/localStorage setting first
+        if (typeof window !== "undefined" && typeof window.localStorage !== "undefined") {
+          const vib = window.localStorage.getItem("vibration")
+          if (vib === "true" && typeof navigator !== "undefined" && "vibrate" in navigator) {
+            navigator.vibrate?.(50)
+            return
+          }
+        }
+
+        // Try react-native Vibration as a fallback (may throw on web)
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-var-requires
+          const { Vibration } = require("react-native")
+          if (Vibration && typeof Vibration.vibrate === "function") {
+            // Try AsyncStorage for saved vibration setting
+            try {
+              const saved = await AsyncStorage.getItem("vibration")
+              if (saved === "true") Vibration.vibrate(50)
+            } catch {}
+          }
+        } catch {}
+      } catch {}
+      return
+    }
 
     try {
       // Stop and rewind the sound first
